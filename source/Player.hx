@@ -10,17 +10,19 @@ class Player extends FlxSprite
   public static inline var GRAVITY = 1970;
   public static inline var TERMINAL_VELOCITY = 480;
 
-  private var canJump:Bool;
+  private var onGround:Bool;
 
   public function new(x:Float = 0, y:Float = 0)
   {
     super(x, y);
-    canJump = false;
+    onGround = false;
     loadGraphic("assets/images/player.png", true, 64, 64);
     setFacingFlip(FlxObject.LEFT, true, false);
     setFacingFlip(FlxObject.RIGHT, false, false);
     animation.add("idle", [0]);
     animation.add("run", [1, 2, 3, 4, 5, 6], 10, true);
+    setSize(24, 47);
+    offset.set(0, 17);
   }
 
   override public function update():Void
@@ -34,30 +36,31 @@ class Player extends FlxSprite
     var left:Bool = FlxG.keys.anyPressed(["LEFT"]);
     var right:Bool = FlxG.keys.anyPressed(["RIGHT"]);
     var jump:Bool = FlxG.keys.anyPressed(["Z"]);
-    if (left && right)
-      left = right = false;
-    else if (left)
+    if(onGround)
     {
-      velocity.x = -RUN_VELOCITY;
-      facing = FlxObject.LEFT;
+      if (left && right)
+        left = right = false;
+      else if (left)
+      {
+        velocity.x = -RUN_VELOCITY;
+        facing = FlxObject.LEFT;
+      }
+      else if (right)
+      {
+        velocity.x = RUN_VELOCITY;
+        facing = FlxObject.RIGHT;
+      }
+      else
+        velocity.x = 0;
     }
-    else if (right)
-    {
-      velocity.x = RUN_VELOCITY;
-      facing = FlxObject.RIGHT;
-    }
-    else
-      velocity.x = 0;
 
     velocity.y += GRAVITY * FlxG.elapsed;
-
     if(velocity.y > TERMINAL_VELOCITY)
       velocity.y = TERMINAL_VELOCITY;
-
-    if (jump && canJump)
+    if (jump && onGround)
     {
       velocity.y = JUMP_VELOCITY;
-      canJump = false;
+      onGround = false;
     }
 
     if (velocity.x != 0)
@@ -66,9 +69,9 @@ class Player extends FlxSprite
       animation.play("idle");
   }
 
-  public function setCanJump(canJump)
+  public function setOnGround(onGround)
   {
-    this.canJump = canJump;
+    this.onGround = onGround;
   }
 
 }

@@ -19,14 +19,16 @@ class PlayState extends FlxState
 	override public function create():Void
 	{
 		super.create();
-		player = new Player(20, 20);
-		add(player);
 
 		var tmx:TiledMap = new TiledMap('assets/data/testmap.tmx');
     level = new FlxTilemap();
     level.loadMap(tmx.getLayer("tiles").csvData, "assets/images/tiles.png", TILE_SIZE, TILE_SIZE, 0, 1);
+		level.setTileProperties(4, FlxObject.NONE);
 		level.setTileProperties(31, FlxObject.ANY);
 		add(level);
+
+		player = new Player(20, 20);
+		add(player);
 	}
 
 	override public function destroy():Void
@@ -38,7 +40,7 @@ class PlayState extends FlxState
 	{
 		super.update();
 		FlxG.collide(player, level);
-		player.setCanJump(player.isTouching(FlxObject.FLOOR));
+		player.setOnGround(player.isTouching(FlxObject.FLOOR));
 		if (FlxG.keys.justPressed.ESCAPE)
 			System.exit(0);
 	}
