@@ -38,7 +38,8 @@ class PlayState extends FlxState
 	{
 		super.update();
 		FlxG.collide(player, level);
-		if(FlxG.keys.justPressed.ESCAPE)
+		player.setCanJump(player.isTouching(FlxObject.FLOOR));
+		if (FlxG.keys.justPressed.ESCAPE)
 			System.exit(0);
 	}
 }

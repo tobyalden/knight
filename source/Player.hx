@@ -5,14 +5,17 @@ import flixel.util.*;
 
 class Player extends FlxSprite
 {
-  public static inline var RUN_VELOCITY:Float = 0.27 * 1000;
-  public static inline var JUMP_VELOCITY:Float = 0.59 * 1000;
-  public static inline var GRAVITY:Float = 0.00197 * 1000;
-  public static inline var TERMINAL_VELOCITY:Float = 0.48 * 1000;
+  public static inline var RUN_VELOCITY = 270;
+  public static inline var JUMP_VELOCITY = -590;
+  public static inline var GRAVITY = 1970;
+  public static inline var TERMINAL_VELOCITY = 480;
+
+  private var canJump:Bool;
 
   public function new(x:Float = 0, y:Float = 0)
   {
     super(x, y);
+    canJump = false;
     loadGraphic("assets/images/player.png", true, 64, 64);
     setFacingFlip(FlxObject.LEFT, true, false);
     setFacingFlip(FlxObject.RIGHT, false, false);
@@ -28,8 +31,9 @@ class Player extends FlxSprite
 
   private function movement():Void
   {
-    var left:Bool = FlxG.keys.anyPressed(["LEFT", "A"]);
-    var right:Bool = FlxG.keys.anyPressed(["RIGHT", "D"]);
+    var left:Bool = FlxG.keys.anyPressed(["LEFT"]);
+    var right:Bool = FlxG.keys.anyPressed(["RIGHT"]);
+    var jump:Bool = FlxG.keys.anyPressed(["Z"]);
     if (left && right)
       left = right = false;
     else if (left)
@@ -45,11 +49,26 @@ class Player extends FlxSprite
     else
       velocity.x = 0;
 
-    velocity.y = 500;
+    velocity.y += GRAVITY * FlxG.elapsed;
 
-    if(velocity.x != 0)
+    if(velocity.y > TERMINAL_VELOCITY)
+      velocity.y = TERMINAL_VELOCITY;
+
+    if (jump && canJump)
+    {
+      velocity.y = JUMP_VELOCITY;
+      canJump = false;
+    }
+
+    if (velocity.x != 0)
       animation.play("run");
     else
       animation.play("idle");
   }
+
+  public function setCanJump(canJump)
+  {
+    this.canJump = canJump;
+  }
+
 }
