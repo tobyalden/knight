@@ -5,7 +5,7 @@ import flixel.util.*;
 
 class Player extends FlxSprite
 {
-  public var speed:Float = 200;
+  public static inline var RUN_VELOCITY:Float = 200;
 
   public function new(x:Float = 0, y:Float = 0)
   {
@@ -15,7 +15,6 @@ class Player extends FlxSprite
     setFacingFlip(FlxObject.RIGHT, false, false);
     animation.add("idle", [0]);
     animation.add("run", [1, 2, 3, 4, 5, 6], 6, true);
-    drag.x = drag.y = 1600;
   }
 
   override public function update():Void
@@ -32,14 +31,18 @@ class Player extends FlxSprite
       left = right = false;
     else if (left)
     {
-      velocity.x = -speed;
+      velocity.x = -RUN_VELOCITY;
       facing = FlxObject.LEFT;
     }
     else if (right)
     {
-      velocity.x = speed;
+      velocity.x = RUN_VELOCITY;
       facing = FlxObject.RIGHT;
     }
+    else
+      velocity.x = 0;
+
+    velocity.y = 500;
 
     if(velocity.x != 0)
       animation.play("run");
