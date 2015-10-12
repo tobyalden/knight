@@ -10,7 +10,9 @@ class Player extends FlxSprite
   public static inline var GRAVITY = 1970;
   public static inline var TERMINAL_VELOCITY = 480;
 
-  public static inline var JUMP_DELAY = 0.05;
+  public static inline var JUMP_DELAY = 0.1;
+  public static inline var JUMP_APEX_VELOCITY = 200;
+
 
   private var onGround:Bool;
   private var isCrouching:Bool;
@@ -27,7 +29,9 @@ class Player extends FlxSprite
     setFacingFlip(FlxObject.RIGHT, false, false);
     animation.add("idle", [0]);
     animation.add("run", [1, 2, 3, 4, 5, 6], 10, true);
-    animation.add("jump", [11]);
+    animation.add("jump_start", [11]);
+    animation.add("jump_tuck", [12]);
+    animation.add("jump_end", [13]);
     animation.add("crouch", [10]);
     setSize(24, 47);
     offset.set(20, 17);
@@ -35,8 +39,8 @@ class Player extends FlxSprite
 
   override public function update():Void
   {
-    super.update();
     movement();
+    super.update();
   }
 
   private function movement():Void
@@ -45,6 +49,8 @@ class Player extends FlxSprite
     var right:Bool = FlxG.keys.anyPressed(["RIGHT"]);
     var down:Bool = FlxG.keys.anyPressed(["DOWN"]);
     var jump:Bool = FlxG.keys.anyPressed(["Z"]);
+
+
     if(onGround)
     {
 
@@ -71,7 +77,6 @@ class Player extends FlxSprite
             velocity.x = 0;
           onGround = false;
         }
-        animation.play("jump");
       }
 
       else if(down && onGround)
@@ -100,6 +105,7 @@ class Player extends FlxSprite
     velocity.y += GRAVITY * FlxG.elapsed;
     if(velocity.y > TERMINAL_VELOCITY)
       velocity.y = TERMINAL_VELOCITY;
+
     if (jump && onGround && jumpTimer == 0 && !isCrouching)
     {
       jumpTimer = JUMP_DELAY;
@@ -114,6 +120,15 @@ class Player extends FlxSprite
         animation.play("run");
       else
         animation.play("idle");
+    }
+    else
+    {
+      if(Math.abs(velocity.y) < JUMP_APEX_VELOCITY)
+        animation.play("jump_tuck");
+      else if(velocity.y < 0)
+        animation.play("jump_start");
+      else
+        animation.play("jump_end");
     }
   }
 
