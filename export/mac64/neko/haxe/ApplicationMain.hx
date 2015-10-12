@@ -499,7 +499,7 @@ class ApplicationMain {
 		
 		config = {
 			
-			build: "154",
+			build: "158",
 			company: "HaxeFlixel",
 			file: "Egress",
 			fps: 60,

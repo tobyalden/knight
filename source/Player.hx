@@ -16,6 +16,8 @@ class Player extends FlxSprite
 
   private var onGround:Bool;
   private var isCrouching:Bool;
+  private var isLanding:Bool;
+  private var isJumpingForward:Bool;
   private var jumpTimer:Float;
 
   public function new(x:Float = 0, y:Float = 0)
@@ -23,6 +25,8 @@ class Player extends FlxSprite
     super(x, y);
     onGround = false;
     isCrouching = false;
+    isLanding = false;
+    isJumpingForward = false;
     jumpTimer = 0;
     loadGraphic("assets/images/player.png", true, 64, 64);
     setFacingFlip(FlxObject.LEFT, true, false);
@@ -50,6 +54,13 @@ class Player extends FlxSprite
     var down:Bool = FlxG.keys.anyPressed(["DOWN"]);
     var jump:Bool = FlxG.keys.anyPressed(["Z"]);
 
+    onGround = isTouching(FlxObject.FLOOR);
+    if(justTouched(FlxObject.FLOOR))
+    {
+      isLanding = true;
+      isJumpingForward = false;
+      jumpTimer = JUMP_DELAY;
+    }
 
     if(onGround)
     {
@@ -60,22 +71,30 @@ class Player extends FlxSprite
       if(jumpTimer > 0)
       {
         jumpTimer -= Math.min(FlxG.elapsed, jumpTimer);
+        velocity.x = 0;
         if(jumpTimer == 0)
         {
-          velocity.y = JUMP_VELOCITY;
-          if (left)
-          {
-            velocity.x = -RUN_VELOCITY;
-            facing = FlxObject.LEFT;
-          }
-          else if(right)
-          {
-            velocity.x = RUN_VELOCITY;
-            facing = FlxObject.RIGHT;
-          }
+          if(isLanding)
+            isLanding = false;
           else
-            velocity.x = 0;
-          onGround = false;
+          {
+            velocity.y = JUMP_VELOCITY;
+            if (left)
+            {
+              velocity.x = -RUN_VELOCITY;
+              facing = FlxObject.LEFT;
+              isJumpingForward = true;
+            }
+            else if(right)
+            {
+              velocity.x = RUN_VELOCITY;
+              facing = FlxObject.RIGHT;
+              isJumpingForward = true;
+            }
+            else
+              velocity.x = 0;
+            onGround = false;
+          }
         }
       }
 
@@ -99,6 +118,16 @@ class Player extends FlxSprite
         }
         else
           velocity.x = 0;
+      }
+    }
+    else
+    {
+      if(isJumpingForward)
+      {
+        if(facing == FlxObject.RIGHT)
+          velocity.x = RUN_VELOCITY;
+        else
+          velocity.x = -RUN_VELOCITY;
       }
     }
 

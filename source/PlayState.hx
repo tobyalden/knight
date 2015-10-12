@@ -39,7 +39,6 @@ class PlayState extends FlxState
 	override public function update():Void
 	{
 		FlxG.collide(player, level);
-		player.setOnGround(player.isTouching(FlxObject.FLOOR));
 		super.update();
 		if (FlxG.keys.justPressed.ESCAPE)
 			System.exit(0);
