@@ -13,12 +13,17 @@ class Player extends FlxSprite
   public static inline var JUMP_DELAY = 0.1;
   public static inline var JUMP_APEX_VELOCITY = 200;
 
+  public static inline var ATTACK_TIME = 1;
+  public static inline var ATTACK_CANCEL_WINDOW = 0.25;
+
 
   private var onGround:Bool;
   private var isCrouching:Bool;
   private var isLanding:Bool;
   private var isJumpingForward:Bool;
+  private var isAttacking:Bool;
   private var jumpTimer:Float;
+  private var attackTimer:Float;
 
   public function new(x:Float = 0, y:Float = 0)
   {
@@ -28,17 +33,20 @@ class Player extends FlxSprite
     isLanding = false;
     isJumpingForward = false;
     jumpTimer = 0;
-    loadGraphic("assets/images/player.png", true, 64, 64);
+    attackTimer = 0;
+    loadGraphic("assets/images/player.png", true, 80, 80);
     setFacingFlip(FlxObject.LEFT, true, false);
     setFacingFlip(FlxObject.RIGHT, false, false);
     animation.add("idle", [0]);
     animation.add("run", [1, 2, 3, 4, 5, 6], 10, true);
-    animation.add("jump_start", [11]);
-    animation.add("jump_tuck", [12]);
-    animation.add("jump_end", [13]);
-    animation.add("crouch", [10]);
-    setSize(24, 47);
-    offset.set(20, 17);
+    animation.add("crouch", [7]);
+    animation.add("jump_start", [8]);
+    animation.add("jump_tuck", [9]);
+    animation.add("jump_end", [10]);
+    animation.add("attack", [11, 12, 13], Std.int((3 / ATTACK_TIME)), false);
+    animation.add("roll", [14, 15, 16], 10, false);
+    setSize(29, 63);
+    offset.set(23, 17);
   }
 
   override public function update():Void
@@ -53,6 +61,7 @@ class Player extends FlxSprite
     var right:Bool = FlxG.keys.anyPressed(["RIGHT"]);
     var down:Bool = FlxG.keys.anyPressed(["DOWN"]);
     var jump:Bool = FlxG.keys.anyPressed(["Z"]);
+    var attack:Bool = FlxG.keys.justPressed.X;
 
     onGround = isTouching(FlxObject.FLOOR);
     if(justTouched(FlxObject.FLOOR))
@@ -97,7 +106,6 @@ class Player extends FlxSprite
           }
         }
       }
-
       else if(down && onGround)
       {
         isCrouching = true;
@@ -141,7 +149,28 @@ class Player extends FlxSprite
       velocity.x = 0;
     }
 
-    if (onGround)
+    if(attackTimer > 0)
+    {
+      attackTimer -= Math.min(FlxG.elapsed, attackTimer);
+      velocity.x = 0;
+    }
+    if(attack && attackTimer < ATTACK_CANCEL_WINDOW)
+    {
+      attackTimer = ATTACK_TIME;
+      animation.play("attack", true);
+    }
+
+    animate();
+
+  }
+
+  private function animate()
+  {
+    if(attackTimer > 0)
+    {
+      animation.play("attack");
+    }
+    else if (onGround)
     {
       if(isCrouching || jumpTimer > 0)
         animation.play("crouch");
