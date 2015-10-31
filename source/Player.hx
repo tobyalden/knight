@@ -13,7 +13,7 @@ class Player extends FlxSprite
   public static inline var JUMP_DELAY = 0.1;
   public static inline var JUMP_APEX_VELOCITY = 200;
 
-  public static inline var ATTACK_TIME = 1;
+  public static inline var ATTACK_TIME = 0.5;
   public static inline var ATTACK_CANCEL_WINDOW = 0.25;
 
 
@@ -43,8 +43,7 @@ class Player extends FlxSprite
     animation.add("jump_start", [8]);
     animation.add("jump_tuck", [9]);
     animation.add("jump_end", [10]);
-    animation.add("attack", [11, 12, 13], Std.int((3 / ATTACK_TIME)), false);
-    animation.add("roll", [14, 15, 16], 10, false);
+    animation.add("attack", [11, 12, 13, 14, 15], Std.int((5 / ATTACK_TIME)), false);
     setSize(29, 63);
     offset.set(23, 17);
   }
