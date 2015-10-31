@@ -14,7 +14,7 @@ class Player extends FlxSprite
   public static inline var JUMP_APEX_VELOCITY = 200;
 
   public static inline var ATTACK_TIME = 0.5;
-  public static inline var ATTACK_CANCEL_WINDOW = 0.25;
+  public static inline var ATTACK_CANCEL_WINDOW = 0.2;
 
 
   private var onGround:Bool;
@@ -22,6 +22,7 @@ class Player extends FlxSprite
   private var isLanding:Bool;
   private var isJumpingForward:Bool;
   private var isAttacking:Bool;
+  private var isBufferingJump:Bool;
   private var jumpTimer:Float;
   private var attackTimer:Float;
 
@@ -32,6 +33,7 @@ class Player extends FlxSprite
     isCrouching = false;
     isLanding = false;
     isJumpingForward = false;
+    isBufferingJump = false;
     jumpTimer = 0;
     attackTimer = 0;
     loadGraphic("assets/images/player.png", true, 80, 80);
@@ -113,18 +115,22 @@ class Player extends FlxSprite
       else
       {
         isCrouching = false;
-        if (left)
+
+        if(attackTimer == 0)
         {
-          velocity.x = -RUN_VELOCITY;
-          facing = FlxObject.LEFT;
+          if (left)
+          {
+            velocity.x = -RUN_VELOCITY;
+            facing = FlxObject.LEFT;
+          }
+          else if (right)
+          {
+            velocity.x = RUN_VELOCITY;
+            facing = FlxObject.RIGHT;
+          }
+          else
+            velocity.x = 0;
         }
-        else if (right)
-        {
-          velocity.x = RUN_VELOCITY;
-          facing = FlxObject.RIGHT;
-        }
-        else
-          velocity.x = 0;
       }
     }
     else
@@ -142,10 +148,19 @@ class Player extends FlxSprite
     if(velocity.y > TERMINAL_VELOCITY)
       velocity.y = TERMINAL_VELOCITY;
 
-    if (jump && onGround && jumpTimer == 0 && !isCrouching)
+    if ((jump || isBufferingJump) && onGround && jumpTimer == 0 && !isCrouching)
     {
-      jumpTimer = JUMP_DELAY;
-      velocity.x = 0;
+      if(attackTimer < ATTACK_CANCEL_WINDOW)
+      {
+        attackTimer = 0;
+        jumpTimer = JUMP_DELAY;
+        velocity.x = 0;
+        isBufferingJump = false;
+      }
+      else
+      {
+        isBufferingJump = true;
+      }
     }
 
     if(attackTimer > 0)
@@ -153,7 +168,7 @@ class Player extends FlxSprite
       attackTimer -= Math.min(FlxG.elapsed, attackTimer);
       velocity.x = 0;
     }
-    if(attack && attackTimer < ATTACK_CANCEL_WINDOW)
+    if(attack && attackTimer < ATTACK_CANCEL_WINDOW && onGround)
     {
       attackTimer = ATTACK_TIME;
       animation.play("attack", true);
