@@ -20,6 +20,7 @@ class PlayState extends FlxState
 	{
 		super.create();
 
+		FlxG.mouse.visible = false;
 		var tmx:TiledMap = new TiledMap('assets/data/testmap.tmx');
     level = new FlxTilemap();
     level.loadMap(tmx.getLayer("tiles").csvData, "assets/images/tiles.png", TILE_SIZE, TILE_SIZE, 0, 1);

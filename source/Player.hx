@@ -46,6 +46,7 @@ class Player extends FlxSprite
     animation.add("jump_tuck", [9]);
     animation.add("jump_end", [10]);
     animation.add("attack", [11, 12, 13, 14, 15], Std.int((5 / ATTACK_TIME)), false);
+    animation.add("crouch_attack", [17, 18, 19, 20, 21], Std.int((5 / ATTACK_TIME)), false);
     setSize(29, 63);
     offset.set(23, 17);
   }
@@ -68,6 +69,7 @@ class Player extends FlxSprite
     if(justTouched(FlxObject.FLOOR))
     {
       isLanding = true;
+      isCrouching = true;
       isJumpingForward = false;
       jumpTimer = JUMP_DELAY;
     }
@@ -107,17 +109,17 @@ class Player extends FlxSprite
           }
         }
       }
-      else if(down && onGround)
+      else if(down && onGround && attackTimer == 0)
       {
         isCrouching = true;
         velocity.x = 0;
       }
       else
       {
-        isCrouching = false;
 
         if(attackTimer == 0)
         {
+          isCrouching = false;
           if (left)
           {
             velocity.x = -RUN_VELOCITY;
@@ -148,7 +150,7 @@ class Player extends FlxSprite
     if(velocity.y > TERMINAL_VELOCITY)
       velocity.y = TERMINAL_VELOCITY;
 
-    if ((jump || isBufferingJump) && onGround && jumpTimer == 0 && !isCrouching)
+    if ((jump || isBufferingJump) && onGround && jumpTimer == 0)
     {
       if(attackTimer < ATTACK_CANCEL_WINDOW)
       {
@@ -171,7 +173,7 @@ class Player extends FlxSprite
     if(attack && attackTimer < ATTACK_CANCEL_WINDOW && onGround)
     {
       attackTimer = ATTACK_TIME;
-      animation.play("attack", true);
+      isCrouching = down;
     }
 
     animate();
@@ -182,7 +184,10 @@ class Player extends FlxSprite
   {
     if(attackTimer > 0)
     {
-      animation.play("attack");
+      if(isCrouching)
+        animation.play("crouch_attack");
+      else
+        animation.play("attack");
     }
     else if (onGround)
     {
