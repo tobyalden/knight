@@ -7,6 +7,7 @@ class Player extends FlxSprite
 {
   public static inline var RUN_VELOCITY = 270;
   public static inline var JUMP_VELOCITY = -590;
+  public static inline var SLIDE_VELOCITY = 590;
   public static inline var GRAVITY = 1970;
   public static inline var TERMINAL_VELOCITY = 480;
 
@@ -23,6 +24,7 @@ class Player extends FlxSprite
   private var isJumpingForward:Bool;
   private var isAttacking:Bool;
   private var isBufferingJump:Bool;
+  private var isSliding:Bool;
   private var jumpTimer:Float;
   private var attackTimer:Float;
 
@@ -34,6 +36,7 @@ class Player extends FlxSprite
     isLanding = false;
     isJumpingForward = false;
     isBufferingJump = false;
+    isSliding = false;
     jumpTimer = 0;
     attackTimer = 0;
     loadGraphic("assets/images/player.png", true, 80, 80);
@@ -47,6 +50,8 @@ class Player extends FlxSprite
     animation.add("jump_end", [10]);
     animation.add("attack", [11, 12, 13, 14, 15], Std.int((5 / ATTACK_TIME)), false);
     animation.add("crouch_attack", [17, 18, 19, 20, 21], Std.int((5 / ATTACK_TIME)), false);
+    animation.add("slide", [22, 23], 3, false);
+    animation.add("slide_fall", [23]);
     setSize(29, 63);
     offset.set(23, 17);
   }
@@ -74,13 +79,28 @@ class Player extends FlxSprite
       jumpTimer = JUMP_DELAY;
     }
 
+    if(!onGround)
+    {
+      if(!isSliding)
+        velocity.x = 0;
+    }
+
     if(onGround)
     {
 
       if (left && right)
         left = right = false;
 
-      if(jumpTimer > 0)
+      if(isSliding)
+      {
+        if(facing == FlxObject.RIGHT)
+          velocity.x -= Math.min(FlxG.elapsed * 1000, velocity.x);
+        else
+          velocity.x += Math.min(FlxG.elapsed * 1000, Math.abs(velocity.x));
+        if(velocity.x == 0)
+          isSliding = false;
+      }
+      else if(jumpTimer > 0)
       {
         jumpTimer -= Math.min(FlxG.elapsed, jumpTimer);
         velocity.x = 0;
@@ -150,14 +170,30 @@ class Player extends FlxSprite
     if(velocity.y > TERMINAL_VELOCITY)
       velocity.y = TERMINAL_VELOCITY;
 
-    if ((jump || isBufferingJump) && onGround && jumpTimer == 0)
+    if ((jump || isBufferingJump) && onGround && jumpTimer == 0 && !isSliding)
     {
       if(attackTimer < ATTACK_CANCEL_WINDOW)
       {
-        attackTimer = 0;
-        jumpTimer = JUMP_DELAY;
-        velocity.x = 0;
-        isBufferingJump = false;
+        if(down)
+        {
+          isSliding = true;
+          animation.play("slide", true);
+          if (left)
+            facing = FlxObject.LEFT;
+          else if(right)
+            facing = FlxObject.RIGHT;
+          if(facing == FlxObject.RIGHT)
+            velocity.x = SLIDE_VELOCITY;
+          else
+            velocity.x = -SLIDE_VELOCITY;
+        }
+        else
+        {
+          attackTimer = 0;
+          jumpTimer = JUMP_DELAY;
+          velocity.x = 0;
+          isBufferingJump = false;
+        }
       }
       else
       {
@@ -182,7 +218,11 @@ class Player extends FlxSprite
 
   private function animate()
   {
-    if(attackTimer > 0)
+    if(isSliding)
+    {
+
+    }
+    else if(attackTimer > 0)
     {
       if(isCrouching)
         animation.play("crouch_attack");
